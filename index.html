@@ -1465,18 +1465,30 @@ function renderBatch(){
         <input type="text" value="${esc(it.merchant)}" data-f="merchant" data-i="${i}">
         <input type="number" class="amt2" value="${it.amt}" step="0.01" data-f="amt" data-i="${i}">
       </div>
-      <select data-f="cat" data-i="${i}">${catOpts}</select>
-      <div class="skip"><input type="checkbox" data-f="skip" data-i="${i}" id="skip${i}" ${it.skip?'checked':''}><label for="skip${i}">跳過呢筆 (${it.type==='out'?'支出':'收入'} · ${it.date})${it.dup?' <b style="color:var(--red)">⚠ 疑似重複</b>':''}</label></div>
+      <div class="fieldrow" style="margin:6px 0 0">
+        <select data-f="type" data-i="${i}" style="width:96px">
+          <option value="out" ${it.type==='out'?'selected':''}>支出</option>
+          <option value="in" ${it.type==='in'?'selected':''}>收入</option>
+        </select>
+        <select data-f="cat" data-i="${i}">${catOpts}</select>
+      </div>
+      <div class="skip"><input type="checkbox" data-f="skip" data-i="${i}" id="skip${i}" ${it.skip?'checked':''}><label for="skip${i}">跳過呢筆 (${it.date})${it.dup?' <b style="color:var(--red)">⚠ 疑似重複</b>':''}</label></div>
     `;
     box.appendChild(row);
   });
   box.querySelectorAll('[data-f]').forEach(el=>{
-    el.addEventListener('input',e=>{
+    const h=e=>{
       const i=+e.target.dataset.i, f=e.target.dataset.f;
+      if(f==='type'){
+        batchItems[i].type=e.target.value; batchItems[i].cat=null;
+        renderBatch(); return;
+      }
       if(f==='skip')batchItems[i].skip=e.target.checked;
       else if(f==='amt')batchItems[i].amt=parseFloat(e.target.value)||0;
       else batchItems[i][f]=e.target.value;
-    });
+    };
+    el.addEventListener('input',h);
+    if(el.tagName==='SELECT')el.addEventListener('change',h);
   });
 }
 function confirmBatch(){
